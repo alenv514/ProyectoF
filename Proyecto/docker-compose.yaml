@@ -1,0 +1,18 @@
+version: '3.8'  # Puedes omitir esta línea si quieres (ver Problema 2)
+
+services:
+  mysql_db:
+    image: mysql:8.0
+    container_name: mysql_container
+    environment:
+      MYSQL_ROOT_PASSWORD: 2805
+      MYSQL_DATABASE: sistema_estacionamiento
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    restart: unless-stopped
+
+# ¡Añade esta sección!
+volumes:
+  mysql_data:  # Define el volumen aquí

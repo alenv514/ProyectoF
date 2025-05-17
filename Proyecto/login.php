@@ -151,7 +151,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
       <?php endif; ?>
 
       <form method="POST" action="">
-        <label for="email">Correo electrónico</label>
+        <label for="email">Correo Institucional</label>
         <input type="email" id="email" name="email" required>
 
         <label for="password">Contraseña</label>

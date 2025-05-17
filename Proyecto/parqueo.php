@@ -158,11 +158,11 @@ while ($fila = $resultado->fetch_assoc()) {
     }
 
     .legend-available {
-      background-color: #e0e0e0;
+      background-color:rgb(0, 249, 108);
     }
 
     .legend-reserved {
-      background-color: #ff6b6b;
+      background-color:rgb(234, 0, 0);
     }
 
     @media (max-width: 768px) {
