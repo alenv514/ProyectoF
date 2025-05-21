@@ -1,5 +1,14 @@
 <?php
 session_start();
+
+// Bloqueo de caché para impedir acceso con botón "atrás"
+header("Expires: Tue, 01 Jan 2000 00:00:00 GMT");
+header("Last-Modified: " . gmdate("D, d M Y H:i:s") . " GMT");
+header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+header("Cache-Control: post-check=0, pre-check=0", false);
+header("Pragma: no-cache");
+
+// Verificación de sesión activa
 if (!isset($_SESSION['usuario_id'])) {
     header("Location: login.php");
     exit();
@@ -12,7 +21,6 @@ $reservas = [];
 
 $sql = "SELECT espacio FROM reservas";
 $resultado = $conexion->query($sql);
-
 while ($fila = $resultado->fetch_assoc()) {
     $reservas[] = $fila['espacio'];
 }
@@ -20,129 +28,51 @@ while ($fila = $resultado->fetch_assoc()) {
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sistema de Reserva de Estacionamiento</title>
   <style>
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      font-family: 'Segoe UI', Tahoma;
+      background-color: #f5f5f5;
       margin: 0;
       padding: 20px;
-      background-color: #f5f5f5;
     }
 
     .container {
       max-width: 900px;
-      margin: 0 auto;
-      background-color: white;
+      margin: auto;
+      background-color: #fff;
       border-radius: 8px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
       padding: 20px;
+    }
+
+    .logout {
+      text-align: right;
+      margin-bottom: 10px;
+    }
+
+    .logout button {
+      background-color: #333;
+      color: white;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
     }
 
     h1 {
       text-align: center;
       color: #333;
-      margin-bottom: 30px;
-    }
-
-    .parking-lot {
-      display: grid;
-      grid-template-columns: repeat(9, 1fr);
-      gap: 5px;
-      margin-bottom: 20px;
-      position: relative;
-    }
-
-    .space {
-      aspect-ratio: 1/1.5;
-      background-color: #e0e0e0;
-      border: 1px solid #999;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: all 0.3s;
-      font-weight: bold;
-      position: relative;
-    }
-
-    .space:hover {
-      background-color: #d0d0d0;
-    }
-
-    .reserved {
-      background-color: #ff6b6b;
-      color: white;
-    }
-
-    .reserved:hover {
-      background-color: #ff5252;
-    }
-
-    .space.disabled {
-      background-color: #aaa;
-      cursor: not-allowed;
-    }
-
-    .driveway {
-      background-color: #a0a0a0;
-      grid-column: span 9;
-      height: 40px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      font-weight: bold;
-    }
-
-    .controls {
-      margin-top: 20px;
-      display: flex;
-      justify-content: space-between;
-      flex-wrap: wrap;
-    }
-
-    .space-info {
-      padding: 15px;
-      background-color: #f0f0f0;
-      border-radius: 6px;
-      margin-bottom: 20px;
-    }
-
-    button {
-      background-color: #4CAF50;
-      color: white;
-      border: none;
-      padding: 10px 15px;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 14px;
-      transition: background-color 0.3s;
-    }
-
-    button:hover {
-      background-color: #45a049;
-    }
-
-    button:disabled {
-      background-color: #cccccc;
-      cursor: not-allowed;
-    }
-
-    .reset-btn {
-      background-color: #f44336;
-    }
-
-    .reset-btn:hover {
-      background-color: #e53935;
     }
 
     .legend {
       display: flex;
       justify-content: center;
-      margin: 20px 0;
       gap: 20px;
+      margin: 20px 0;
     }
 
     .legend-item {
@@ -154,58 +84,115 @@ while ($fila = $resultado->fetch_assoc()) {
     .legend-color {
       width: 20px;
       height: 20px;
-      border: 1px solid #999;
+      border: 1px solid #333;
     }
 
-    .legend-available {
-      background-color:rgb(0, 249, 108);
+    .legend-available { background-color: #e0e0e0; }
+    .legend-reserved { background-color: #ff6b6b; }
+
+    .space-info {
+      background-color: #f0f0f0;
+      padding: 10px;
+      border-radius: 6px;
+      text-align: center;
+      margin-bottom: 20px;
     }
 
-    .legend-reserved {
-      background-color:rgb(234, 0, 0);
+    .parking-lot {
+      display: grid;
+      grid-template-columns: repeat(9, 1fr);
+      gap: 5px;
+      margin-bottom: 20px;
     }
 
-    @media (max-width: 768px) {
-      .parking-lot {
-        grid-template-columns: repeat(4, 1fr);
-      }
+    .space {
+      aspect-ratio: 1/1.5;
+      background-color: #e0e0e0;
+      border: 1px solid #ccc;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      cursor: pointer;
+    }
 
-      .driveway {
-        grid-column: span 4;
-      }
+    .reserved {
+      background-color: #ff6b6b;
+      color: white;
+    }
+
+    .driveway {
+      grid-column: span 9;
+      background-color: #888;
+      text-align: center;
+      padding: 10px;
+      color: white;
+      font-weight: bold;
+    }
+
+    .controls {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 15px;
+    }
+
+    button {
+      padding: 10px 15px;
+      border: none;
+      border-radius: 4px;
+      font-size: 14px;
+      cursor: pointer;
+      color: white;
+    }
+
+    .reserve-btn {
+      background-color: #4CAF50;
+    }
+
+    .reserve-btn:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
+
+    .reset-btn {
+      background-color: #f44336;
+    }
+
+    .reset-btn:hover {
+      background-color: #e53935;
     }
   </style>
 </head>
 <body>
   <div class="container">
+    <!-- Cerrar sesión -->
+    <div class="logout">
+      <form action="logout.php" method="POST">
+        <button type="submit">Cerrar sesión</button>
+      </form>
+    </div>
+
     <h1>Sistema de Reserva de Estacionamiento</h1>
 
     <div class="legend">
-      <div class="legend-item">
-        <div class="legend-color legend-available"></div>
-        <span>Disponible</span>
-      </div>
-      <div class="legend-item">
-        <div class="legend-color legend-reserved"></div>
-        <span>Reservado</span>
-      </div>
+      <div class="legend-item"><div class="legend-color legend-available"></div> Disponible</div>
+      <div class="legend-item"><div class="legend-color legend-reserved"></div> Reservado</div>
     </div>
 
-    <div id="spaceInfo" class="space-info">
-      Seleccione un espacio para reservar
-    </div>
+    <div id="spaceInfo" class="space-info">Seleccione un espacio para reservar</div>
 
     <div class="parking-lot">
       <?php
       $espacios = [
-        'A1','A2','A3','A4','A5','A6','A7','A8',
+        'A1','A2','A3','A4','A5','A6','A7','A8','A9',
+        'ENTRADA',
         'B1','B2','B3','B4','B5','B6','B7','B8','B9'
       ];
-      $puntoMedio = 8;
 
-      foreach ($espacios as $i => $espacio) {
-          if ($i == $puntoMedio) {
+      foreach ($espacios as $espacio) {
+          if ($espacio === 'ENTRADA') {
               echo '<div class="driveway">ENTRADA / SALIDA</div>';
+              continue;
           }
           $clase = in_array($espacio, $reservas) ? 'space reserved' : 'space';
           echo "<div class=\"$clase\" data-id=\"$espacio\">$espacio</div>";
@@ -214,63 +201,67 @@ while ($fila = $resultado->fetch_assoc()) {
     </div>
 
     <div class="controls">
-      <button id="reserveBtn" disabled>Reservar espacio</button>
+      <button id="reserveBtn" class="reserve-btn" disabled>Reservar espacio</button>
       <button id="resetBtn" class="reset-btn">Reiniciar todas las reservas</button>
     </div>
   </div>
 
   <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      let selectedSpace = null;
-      const reserveBtn = document.getElementById('reserveBtn');
-      const resetBtn = document.getElementById('resetBtn');
-      const spaceInfo = document.getElementById('spaceInfo');
-      const spaces = document.querySelectorAll('.space:not(.disabled)');
+    let selected = null;
+    const btn = document.getElementById("reserveBtn");
+    const resetBtn = document.getElementById("resetBtn");
+    const info = document.getElementById("spaceInfo");
 
-      spaces.forEach(space => {
-        space.addEventListener('click', function() {
-          if (this.classList.contains('reserved')) {
-            spaceInfo.textContent = `El espacio ${this.dataset.id} ya está reservado.`;
-            selectedSpace = null;
-            reserveBtn.disabled = true;
-            return;
-          }
-
-          if (selectedSpace) {
-            selectedSpace.classList.remove('selected');
-          }
-
-          selectedSpace = this;
-          spaceInfo.textContent = `Espacio seleccionado: ${this.dataset.id}`;
-          reserveBtn.disabled = false;
-        });
-      });
-
-      reserveBtn.addEventListener('click', function() {
-        if (selectedSpace) {
-          const xhr = new XMLHttpRequest();
-          xhr.open("POST", "guardar_reserva.php", true);
-          xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-          xhr.onreadystatechange = function () {
-            if (xhr.readyState === 4 && xhr.status === 200) {
-              if (xhr.responseText.trim() === "ok") {
-                selectedSpace.classList.add('reserved');
-                spaceInfo.textContent = `¡Espacio ${selectedSpace.dataset.id} reservado exitosamente!`;
-                selectedSpace = null;
-                reserveBtn.disabled = true;
-              } else {
-                alert(xhr.responseText);
-              }
-            }
-          };
-          xhr.send("espacio=" + encodeURIComponent(selectedSpace.dataset.id));
+    document.querySelectorAll(".space").forEach(s => {
+      s.addEventListener("click", () => {
+        if (s.classList.contains("reserved")) {
+          info.textContent = `El espacio ${s.dataset.id} ya está reservado.`;
+          selected = null;
+          btn.disabled = true;
+          return;
         }
-      });
-
-      resetBtn.addEventListener('click', function() {
-        window.location.href = "resetear_reservas.php";
+        document.querySelectorAll(".space").forEach(el => el.classList.remove("selected"));
+        s.classList.add("selected");
+        selected = s;
+        info.textContent = `Espacio seleccionado: ${s.dataset.id}`;
+        btn.disabled = false;
       });
     });
+
+    btn.addEventListener("click", () => {
+      if (!selected) return;
+      fetch("guardar_reserva.php", {
+        method: "POST",
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: `espacio=${selected.dataset.id}`
+      })
+      .then(res => res.text())
+      .then(txt => {
+        if (txt.trim() === "OK") {
+          selected.classList.add("reserved");
+          info.textContent = `¡Reserva exitosa en ${selected.dataset.id}!`;
+          selected = null;
+          btn.disabled = true;
+        } else {
+          info.textContent = `Error: ${txt}`;
+        }
+      });
+    });
+
+    resetBtn.addEventListener("click", () => {
+      window.location.href = "resetear_reservas.php";
+    });
+
+    // 🔒 Si accede con el botón atrás, forzar verificación de sesión
+    if (performance.navigation.type === 2) {
+      fetch("check_session.php")
+        .then(res => res.text())
+        .then(data => {
+          if (data.trim() === "NO_SESSION") {
+            window.location.href = "login.php";
+          }
+        });
+    }
   </script>
 </body>
 </html>
