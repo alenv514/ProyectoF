@@ -252,7 +252,7 @@ while ($fila = $resultado->fetch_assoc()) {
       window.location.href = "resetear_reservas.php";
     });
 
-    // 🔒 Si accede con el botón atrás, forzar verificación de sesión
+    // Si accede con el botón atras cierra la verificación de sesión
     if (performance.navigation.type === 2) {
       fetch("check_session.php")
         .then(res => res.text())
