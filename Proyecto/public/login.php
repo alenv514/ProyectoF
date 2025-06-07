@@ -2,58 +2,51 @@
 session_start();
 require_once 'clases/Usuario.php';
 
+// Para depuración (muestra todos los errores)
+// ini_set('display_errors', 1);
+// ini_set('display_startup_errors', 1);
+// error_reporting(E_ALL);
+
 $mensaje_error = '';
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    // Validación segura de campos POST
-    $email = filter_input(INPUT_POST, 'email', FILTER_SANITIZE_EMAIL);
-    $password = $_POST['password'] ?? ''; // No filtrar contraseña para no alterar caracteres especiales
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Sanitizar y validar entradas
+    $email    = filter_input(INPUT_POST, 'email', FILTER_SANITIZE_EMAIL);
+    $password = $_POST['password'] ?? '';
 
-<<<<<<< HEAD
-    if (is_array($resultado) && isset($resultado['ok'])) {
-        // Guardamos ID y email en la sesión
-        $_SESSION['usuario_id']    = $resultado['id'];
-        $_SESSION['usuario_email'] = $resultado['email'];
-        // Ahora guardamos el rol en 'rol' (para que los demás scripts lo chequeen)
-        $_SESSION['rol']           = $resultado['rol'];
-
-        header("Location: dashboard.php");
-        exit();
-    } else {
-        $mensaje_error = $resultado; // Mensaje de error (usuario no existe o contraseña incorrecta)
-=======
     if (empty($email)) {
-        $mensaje_error = "El campo email es requerido";
+        $mensaje_error = "El campo email es requerido.";
     } elseif (empty($password)) {
-        $mensaje_error = "El campo contraseña es requerido";
+        $mensaje_error = "El campo contraseña es requerido.";
     } else {
         try {
-            $usuario = new Usuario();
+            $usuario   = new Usuario();
             $resultado = $usuario->login($email, $password);
 
             if (is_array($resultado) && !empty($resultado['ok'])) {
-                // Validación adicional de datos de sesión
+                // Verificar que vengan todos los datos
                 if (empty($resultado['id']) || empty($resultado['email']) || empty($resultado['rol'])) {
-                    throw new Exception("Datos de usuario incompletos");
+                    throw new Exception("Datos de usuario incompletos.");
                 }
 
-                $_SESSION['usuario_id'] = $resultado['id'];
+                // Guardar en sesión
+                $_SESSION['usuario_id']    = $resultado['id'];
                 $_SESSION['usuario_email'] = $resultado['email'];
-                $_SESSION['usuario_rol'] = $resultado['rol'];
-                
+                $_SESSION['rol']           = $resultado['rol'];
+
                 header("Location: dashboard.php");
                 exit();
             } else {
-                $mensaje_error = is_string($resultado) ? $resultado : "Credenciales incorrectas";
+                $mensaje_error = is_string($resultado)
+                    ? $resultado
+                    : "Credenciales incorrectas.";
             }
         } catch (Exception $e) {
             $mensaje_error = "Error en el sistema: " . $e->getMessage();
         }
->>>>>>> 70a9d4e688437c720e390ceed5c0c6cb30cf9330
     }
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -179,18 +172,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <div class="right-side">
       <h2>Iniciar sesión</h2>
 
-<<<<<<< HEAD
-      <?php if ($mensaje_error): ?>
-        <div class="error"><?php echo htmlspecialchars($mensaje_error); ?></div>
-=======
       <?php if (!empty($mensaje_error)): ?>
-        <div class="error"><?php echo htmlspecialchars($mensaje_error, ENT_QUOTES, 'UTF-8'); ?></div>
->>>>>>> 70a9d4e688437c720e390ceed5c0c6cb30cf9330
+        <div class="error">
+          <?= htmlspecialchars($mensaje_error, ENT_QUOTES, 'UTF-8') ?>
+        </div>
       <?php endif; ?>
 
-      <form method="POST" action="<?php echo htmlspecialchars($_SERVER['PHP_SELF'], ENT_QUOTES, 'UTF-8'); ?>">
+      <form method="POST" action="<?= htmlspecialchars($_SERVER['PHP_SELF'], ENT_QUOTES, 'UTF-8') ?>">
         <label for="email">Correo Institucional</label>
-        <input type="email" id="email" name="email" required value="<?php echo isset($_POST['email']) ? htmlspecialchars($_POST['email'], ENT_QUOTES, 'UTF-8') : ''; ?>">
+        <input type="email" id="email" name="email" required
+               value="<?= isset($_POST['email'])
+                        ? htmlspecialchars($_POST['email'], ENT_QUOTES, 'UTF-8')
+                        : '' ?>">
 
         <label for="password">Contraseña</label>
         <input type="password" id="password" name="password" required>
