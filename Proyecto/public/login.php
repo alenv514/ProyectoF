@@ -8,15 +8,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $usuario = new Usuario();
     $resultado = $usuario->login($_POST['email'], $_POST['password']);
 
-
     if (is_array($resultado) && isset($resultado['ok'])) {
-        $_SESSION['usuario_id'] = $resultado['id'];
+        // Guardamos ID y email en la sesión
+        $_SESSION['usuario_id']    = $resultado['id'];
         $_SESSION['usuario_email'] = $resultado['email'];
-        $_SESSION['usuario_rol'] = $resultado['rol'];
+        // Ahora guardamos el rol en 'rol' (para que los demás scripts lo chequeen)
+        $_SESSION['rol']           = $resultado['rol'];
+
         header("Location: dashboard.php");
         exit();
     } else {
-        $mensaje_error = $resultado; // determina si el usario existe o no
+        $mensaje_error = $resultado; // Mensaje de error (usuario no existe o contraseña incorrecta)
     }
 }
 ?>
@@ -147,7 +149,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
       <h2>Iniciar sesión</h2>
 
       <?php if ($mensaje_error): ?>
-        <div class="error"><?php echo $mensaje_error; ?></div>
+        <div class="error"><?php echo htmlspecialchars($mensaje_error); ?></div>
       <?php endif; ?>
 
       <form method="POST" action="">
