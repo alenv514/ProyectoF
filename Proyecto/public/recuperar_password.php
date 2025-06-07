@@ -156,6 +156,9 @@
         
                 const emailinst = document.getElementById('emailinst').value;
                 const emailrecover = document.getElementById('emailrecover').value;
+                
+                console.log('Correo Institucional:', emailinst);
+                console.log('Correo de Recuperación:', emailrecover);
 
                 fetch('enviar_codigo.php', {
                         method: 'POST',
