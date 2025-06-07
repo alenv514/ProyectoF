@@ -9,6 +9,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $email = filter_input(INPUT_POST, 'email', FILTER_SANITIZE_EMAIL);
     $password = $_POST['password'] ?? ''; // No filtrar contraseña para no alterar caracteres especiales
 
+<<<<<<< HEAD
+    if (is_array($resultado) && isset($resultado['ok'])) {
+        // Guardamos ID y email en la sesión
+        $_SESSION['usuario_id']    = $resultado['id'];
+        $_SESSION['usuario_email'] = $resultado['email'];
+        // Ahora guardamos el rol en 'rol' (para que los demás scripts lo chequeen)
+        $_SESSION['rol']           = $resultado['rol'];
+
+        header("Location: dashboard.php");
+        exit();
+    } else {
+        $mensaje_error = $resultado; // Mensaje de error (usuario no existe o contraseña incorrecta)
+=======
     if (empty($email)) {
         $mensaje_error = "El campo email es requerido";
     } elseif (empty($password)) {
@@ -36,6 +49,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         } catch (Exception $e) {
             $mensaje_error = "Error en el sistema: " . $e->getMessage();
         }
+>>>>>>> 70a9d4e688437c720e390ceed5c0c6cb30cf9330
     }
 }
 ?>
@@ -165,8 +179,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <div class="right-side">
       <h2>Iniciar sesión</h2>
 
+<<<<<<< HEAD
+      <?php if ($mensaje_error): ?>
+        <div class="error"><?php echo htmlspecialchars($mensaje_error); ?></div>
+=======
       <?php if (!empty($mensaje_error)): ?>
         <div class="error"><?php echo htmlspecialchars($mensaje_error, ENT_QUOTES, 'UTF-8'); ?></div>
+>>>>>>> 70a9d4e688437c720e390ceed5c0c6cb30cf9330
       <?php endif; ?>
 
       <form method="POST" action="<?php echo htmlspecialchars($_SERVER['PHP_SELF'], ENT_QUOTES, 'UTF-8'); ?>">
