@@ -1,19 +1,23 @@
 <?php
 session_start();
 require_once './clases/Conexion.php'; // Asegúrate de tener esto
-require_once './clases/Usuario.php';  
-function generarCodigo($longitud = 4) {
+require_once './clases/Usuario.php';
+function generarCodigo($longitud = 4)
+{
     return str_pad(rand(0, 9999), $longitud, '0', STR_PAD_LEFT);
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['emailinst']) && isset($_POST['emailrecover'])) {
     $emailinst = $_POST['emailinst'];
     $emailrecover = $_POST['emailrecover'];
-      $usuario = new Usuario();
+
+    
+    $usuario = new Usuario();
+
     if (!$usuario->existeEmail($emailinst)) {
         echo json_encode([
             'success' => false,
-            'message' => 'El correo no está registrado.'
+            'message' => 'El correo no está registradox.'
         ]);
         exit;
     }
@@ -51,4 +55,3 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['emailinst']) && isset
         echo json_encode(['success' => false, 'message' => 'No se pudo enviar el correo.']);
     }
 }
-?>

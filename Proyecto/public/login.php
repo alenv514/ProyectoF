@@ -5,18 +5,37 @@ require_once 'clases/Usuario.php';
 $mensaje_error = '';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $usuario = new Usuario();
-    $resultado = $usuario->login($_POST['email'], $_POST['password']);
+    // Validación segura de campos POST
+    $email = filter_input(INPUT_POST, 'email', FILTER_SANITIZE_EMAIL);
+    $password = $_POST['password'] ?? ''; // No filtrar contraseña para no alterar caracteres especiales
 
-
-    if (is_array($resultado) && isset($resultado['ok'])) {
-        $_SESSION['usuario_id'] = $resultado['id'];
-        $_SESSION['usuario_email'] = $resultado['email'];
-        $_SESSION['usuario_rol'] = $resultado['rol'];
-        header("Location: dashboard.php");
-        exit();
+    if (empty($email)) {
+        $mensaje_error = "El campo email es requerido";
+    } elseif (empty($password)) {
+        $mensaje_error = "El campo contraseña es requerido";
     } else {
-        $mensaje_error = $resultado; // determina si el usario existe o no
+        try {
+            $usuario = new Usuario();
+            $resultado = $usuario->login($email, $password);
+
+            if (is_array($resultado) && !empty($resultado['ok'])) {
+                // Validación adicional de datos de sesión
+                if (empty($resultado['id']) || empty($resultado['email']) || empty($resultado['rol'])) {
+                    throw new Exception("Datos de usuario incompletos");
+                }
+
+                $_SESSION['usuario_id'] = $resultado['id'];
+                $_SESSION['usuario_email'] = $resultado['email'];
+                $_SESSION['usuario_rol'] = $resultado['rol'];
+                
+                header("Location: dashboard.php");
+                exit();
+            } else {
+                $mensaje_error = is_string($resultado) ? $resultado : "Credenciales incorrectas";
+            }
+        } catch (Exception $e) {
+            $mensaje_error = "Error en el sistema: " . $e->getMessage();
+        }
     }
 }
 ?>
@@ -146,13 +165,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <div class="right-side">
       <h2>Iniciar sesión</h2>
 
-      <?php if ($mensaje_error): ?>
-        <div class="error"><?php echo $mensaje_error; ?></div>
+      <?php if (!empty($mensaje_error)): ?>
+        <div class="error"><?php echo htmlspecialchars($mensaje_error, ENT_QUOTES, 'UTF-8'); ?></div>
       <?php endif; ?>
 
-      <form method="POST" action="">
+      <form method="POST" action="<?php echo htmlspecialchars($_SERVER['PHP_SELF'], ENT_QUOTES, 'UTF-8'); ?>">
         <label for="email">Correo Institucional</label>
-        <input type="email" id="email" name="email" required>
+        <input type="email" id="email" name="email" required value="<?php echo isset($_POST['email']) ? htmlspecialchars($_POST['email'], ENT_QUOTES, 'UTF-8') : ''; ?>">
 
         <label for="password">Contraseña</label>
         <input type="password" id="password" name="password" required>
