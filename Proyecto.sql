@@ -30,3 +30,9 @@ CREATE TABLE reservas (
 );
 select * from reservas
 
+CREATE TABLE espacios (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(255) NOT NULL UNIQUE,
+);
+select * from espacios;
+
